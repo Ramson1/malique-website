@@ -18,6 +18,9 @@ import {
 import { useAuth } from "@/lib/auth-context";
 import { api } from "@/lib/api/client";
 import { Skeleton, SkeletonProductGrid } from "@/components/skeleton";
+import { formatNaira } from "@/lib/format";
+import { FLW_PUBLIC_KEY, collectFlutterwavePayment } from "@/lib/flutterwave";
+import { orderFollowupWhatsAppUrl } from "@/lib/whatsapp";
 
 interface Branch {
   id: string;
@@ -67,8 +70,6 @@ const CATEGORY_TITLES: Record<string, string> = {
   accessory: "Accessories",
 };
 
-const PAYSTACK_PUBLIC_KEY = process.env.NEXT_PUBLIC_PAYSTACK_PUBLIC_KEY || "";
-
 function haversineKm(lat1: number, lng1: number, lat2: number, lng2: number) {
   const R = 6371;
   const toRad = (d: number) => (d * Math.PI) / 180;
@@ -104,35 +105,6 @@ function previewDeliveryFee(
   return { fee, note: `~${km.toFixed(1)}km from the branch` };
 }
 
-function loadPaystackScript(): Promise<void> {
-  return new Promise((resolve, reject) => {
-    if (typeof window === "undefined") return reject();
-    if (window.PaystackPop) return resolve();
-    const existing = document.querySelector<HTMLScriptElement>(
-      "script[src='https://js.paystack.co/v1/inline.js']"
-    );
-    if (existing) {
-      existing.addEventListener("load", () => resolve());
-      existing.addEventListener("error", () => reject());
-      return;
-    }
-    const script = document.createElement("script");
-    script.src = "https://js.paystack.co/v1/inline.js";
-    script.async = true;
-    script.onload = () => resolve();
-    script.onerror = () => reject();
-    document.body.appendChild(script);
-  });
-}
-
-declare global {
-  interface Window {
-    PaystackPop?: {
-      setup: (options: Record<string, unknown>) => { openIframe: () => void };
-    };
-  }
-}
-
 function OrderWizard() {
   const [step, setStep] = useState(0);
   const [branches, setBranches] = useState<Branch[]>([]);
@@ -150,6 +122,12 @@ function OrderWizard() {
   const [error, setError] = useState("");
   const [toast, setToast] = useState("");
   const [orderPlaced, setOrderPlaced] = useState(false);
+  // Paid online: order response + gateway ref; drives the confirmation screen
+  // and the automatic WhatsApp follow-up jump.
+  const [paidOrder, setPaidOrder] = useState<{
+    order: any;
+    reference: string;
+  } | null>(null);
   const [placedOrderId, setPlacedOrderId] = useState("");
   const { user } = useAuth();
   const searchParams = useSearchParams();
@@ -385,28 +363,32 @@ function OrderWizard() {
       setPlacedOrderId(order.id);
 
       if (paymentMethod === "online") {
-        const init = await api.post<{ authorization_url: string; reference: string }>(
+        const init = await api.post<{ reference: string }>(
           "/payments/init",
           { orderId: order.id }
         );
-        await loadPaystackScript();
-        const popup = window.PaystackPop!.setup({
-          key: PAYSTACK_PUBLIC_KEY,
+        const res = await collectFlutterwavePayment({
+          amount: Number(order.totalAmount),
+          txRef: init.reference,
           email: user.email,
-          amount: Math.round(Number(order.totalAmount) * 100),
-          ref: init.reference,
-          callback: async () => {
-            try {
-              await api.post("/payments/verify", { reference: init.reference });
-            } catch {
-              // Webhook will settle it server-side; the tracking page shows status.
-            }
-            window.location.href = `/dashboard/orders/${order.id}`;
-          },
+          name: user.fullName,
+          phone: deliveryPhone || user.phone,
+          orderNumber: order.orderNumber,
         });
-        popup.openIframe();
+        if (res?.status === "successful") {
+          try {
+            await api.post("/payments/verify", { reference: init.reference });
+          } catch {
+            // Webhook settles it server-side; the confirmation still shows.
+          }
+          setPaidOrder({ order, reference: init.reference });
+        } else {
+          // Failed or dismissed — the order stays live and payable from its
+          // tracking page.
+          window.location.href = `/dashboard/orders/${order.id}`;
+        }
         setLoading(false);
-        return; // stay on the wizard until the Paystack callback fires
+        return; // confirmation screen (or tracking page) takes over
       }
 
       setOrderPlaced(true);
@@ -417,6 +399,78 @@ function OrderWizard() {
     } finally {
       setLoading(false);
     }
+  }
+
+  function paidOrderWaUrl(p: { order: any; reference: string }) {
+    return orderFollowupWhatsAppUrl({
+      orderNumber: p.order.orderNumber,
+      reference: p.reference,
+      items: (p.order.items ?? []).map((i: any) => ({
+        name: i.product?.name ?? "Item",
+        sizeKg: i.sizeKg,
+        quantity: i.quantity,
+        lineTotal: i.totalPrice,
+      })),
+      subtotal: p.order.subtotal,
+      deliveryFee: p.order.deliveryFee,
+      total: p.order.totalAmount,
+      customer: {
+        name: user?.fullName,
+        phone: deliveryPhone || user?.phone,
+        email: user?.email,
+      },
+      deliveryAddress: deliveryAddress || null,
+      branchName: p.order.branch?.name ?? activeBranch?.name ?? null,
+    });
+  }
+
+  // Confirmation screen shows for a beat, then routes the client straight to
+  // the company WhatsApp with the order + their details for instant follow-up.
+  useEffect(() => {
+    if (!paidOrder) return;
+    const url = paidOrderWaUrl(paidOrder);
+    const t = setTimeout(() => {
+      window.location.href = url;
+    }, 1000);
+    return () => clearTimeout(t);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [paidOrder]);
+
+  if (paidOrder) {
+    return (
+      <div className="min-h-screen bg-slate-50 flex items-center justify-center p-6">
+        <div className="max-w-md text-center">
+          <div className="w-16 h-16 rounded-full bg-green-100 flex items-center justify-center mx-auto mb-6">
+            <Check className="w-8 h-8 text-green-600" />
+          </div>
+          <h1 className="text-2xl font-bold text-navy-900 mb-3">Payment Successful!</h1>
+          <p className="text-slate-600 mb-2">
+            Order{" "}
+            <span className="font-semibold text-navy-900">
+              {paidOrder.order.orderNumber}
+            </span>{" "}
+            — {formatNaira(paidOrder.order.totalAmount)} paid.
+          </p>
+          <p className="text-sm text-slate-500 mb-8">
+            Redirecting you to WhatsApp to confirm your order with our team…
+          </p>
+          <div className="flex flex-col gap-3">
+            <a
+              href={paidOrderWaUrl(paidOrder)}
+              className="inline-flex items-center justify-center h-11 rounded-lg bg-[#25D366] text-white text-sm font-semibold hover:brightness-95 transition"
+            >
+              Open WhatsApp now
+            </a>
+            <Link
+              href={`/dashboard/orders/${paidOrder.order.id}`}
+              className="inline-flex items-center justify-center h-11 rounded-lg border border-slate-300 text-slate-700 text-sm font-medium hover:bg-slate-50 transition-colors"
+            >
+              Continue to Tracking
+            </Link>
+          </div>
+        </div>
+      </div>
+    );
   }
 
   if (orderPlaced) {
@@ -815,7 +869,7 @@ function OrderWizard() {
 
               <button
                 onClick={() => {
-                  if (!PAYSTACK_PUBLIC_KEY) {
+                  if (!FLW_PUBLIC_KEY) {
                     setToast("Online card payment is not configured yet. Pay on delivery works now.");
                     return;
                   }
@@ -825,7 +879,7 @@ function OrderWizard() {
                   paymentMethod === "online"
                     ? "border-amber-500 bg-amber-50 ring-2 ring-amber-500/20"
                     : "border-slate-200 bg-white hover:border-slate-300"
-                } ${!PAYSTACK_PUBLIC_KEY ? "opacity-60" : ""}`}
+                } ${!FLW_PUBLIC_KEY ? "opacity-60" : ""}`}
               >
                 <div className="w-10 h-10 rounded-lg bg-blue-100 flex items-center justify-center shrink-0">
                   <span className="text-lg">💳</span>
@@ -833,9 +887,9 @@ function OrderWizard() {
                 <div className="flex-1">
                   <div className="font-semibold text-navy-900">Pay Online</div>
                   <div className="text-xs text-slate-500">
-                    {PAYSTACK_PUBLIC_KEY
-                      ? "Card, Bank Transfer, or USSD via Paystack"
-                      : "Card checkout coming soon — configure Paystack"}
+                    {FLW_PUBLIC_KEY
+                      ? "Card, Bank Transfer, or USSD via Flutterwave"
+                      : "Card checkout coming soon — configure Flutterwave"}
                   </div>
                 </div>
               </button>
@@ -945,7 +999,7 @@ function OrderWizard() {
               <div className="p-4 rounded-xl border border-slate-200 bg-white">
                 <div className="text-xs font-medium text-slate-500 uppercase mb-1">Payment</div>
                 <div className="text-sm font-semibold text-navy-900">
-                  {paymentMethod === "pod" ? "Pay on Delivery" : "Online Payment (Paystack)"}
+                  {paymentMethod === "pod" ? "Pay on Delivery" : "Online Payment (Flutterwave)"}
                 </div>
               </div>
 

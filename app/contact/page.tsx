@@ -49,19 +49,19 @@ export default function ContactPage() {
                   href="tel:+2349031628721"
                   className="block text-sm text-slate-600 hover:text-amber-600 transition-colors"
                 >
-                  Igboh Etche · +234 903 162 8721
+                  +234 903 162 8721
                 </a>
                 <a
                   href="tel:+2349155977415"
                   className="block text-sm text-slate-600 hover:text-amber-600 transition-colors"
                 >
-                  Igboh Etche · +234 915 597 7415
+                  +234 915 597 7415
                 </a>
                 <a
                   href="tel:+2349030568003"
                   className="block text-sm text-slate-600 hover:text-amber-600 transition-colors"
                 >
-                  Elelenwo · +234 903 056 8003
+                  +234 903 056 8003
                 </a>
               </div>
 

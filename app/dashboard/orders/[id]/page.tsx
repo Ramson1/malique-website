@@ -17,6 +17,8 @@ import {
 import { useAuth } from "@/lib/auth-context";
 import { api } from "@/lib/api/client";
 import { Skeleton, SkeletonList } from "@/components/skeleton";
+import { FLW_PUBLIC_KEY, collectFlutterwavePayment } from "@/lib/flutterwave";
+import { orderFollowupWhatsAppUrl } from "@/lib/whatsapp";
 import {
   formatNaira,
   formatDate,
@@ -25,8 +27,6 @@ import {
   ORDER_STATUSES,
   type OrderStatus,
 } from "@/lib/format";
-
-const PAYSTACK_PUBLIC_KEY = process.env.NEXT_PUBLIC_PAYSTACK_PUBLIC_KEY || "";
 
 interface OrderDetail {
   id: string;
@@ -60,28 +60,6 @@ interface OrderDetail {
   payments?: { id: string; transactionRef?: string | null; status: string }[];
 }
 
-function loadPaystackScript(): Promise<void> {
-  return new Promise((resolve, reject) => {
-    if (typeof window === "undefined") return reject();
-    const w = window as any;
-    if (w.PaystackPop) return resolve();
-    const existing = document.querySelector<HTMLScriptElement>(
-      "script[src='https://js.paystack.co/v1/inline.js']"
-    );
-    if (existing) {
-      existing.addEventListener("load", () => resolve());
-      existing.addEventListener("error", () => reject());
-      return;
-    }
-    const script = document.createElement("script");
-    script.src = "https://js.paystack.co/v1/inline.js";
-    script.async = true;
-    script.onload = () => resolve();
-    script.onerror = () => reject();
-    document.body.appendChild(script);
-  });
-}
-
 const FINAL_STATUSES: OrderStatus[] = ["delivered", "cancelled"];
 
 export default function OrderDetailPage() {
@@ -95,6 +73,10 @@ export default function OrderDetailPage() {
   const [notFound, setNotFound] = useState(false);
   const [paying, setPaying] = useState(false);
   const [error, setError] = useState("");
+  // Set only when a Flutterwave payment succeeds during THIS visit; triggers
+  // the one-shot WhatsApp follow-up jump (never on plain page loads).
+  const [justPaid, setJustPaid] = useState<{ reference: string } | null>(null);
+  const waRedirectedRef = useRef(false);
   const pollRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
   const fetchOrder = useCallback(async () => {
@@ -127,37 +109,76 @@ export default function OrderDetailPage() {
   }, [order, fetchOrder]);
 
   async function completePayment() {
-    if (!order || !PAYSTACK_PUBLIC_KEY) return;
+    if (!order || !FLW_PUBLIC_KEY) return;
     setPaying(true);
     setError("");
     try {
-      const init = await api.post<{ authorization_url: string; reference: string }>(
+      const init = await api.post<{ reference: string }>(
         "/payments/init",
         { orderId: order.id }
       );
-      await loadPaystackScript();
-      const w = window as any;
-      const popup = w.PaystackPop.setup({
-        key: PAYSTACK_PUBLIC_KEY,
-        email: user?.email,
-        amount: Math.round(Number(order.totalAmount) * 100),
-        ref: init.reference,
-        callback: async () => {
-          try {
-            await api.post("/payments/verify", { reference: init.reference });
-          } catch {
-            // Webhook settles it server-side; refresh shows the truth.
-          }
-          fetchOrder();
-        },
+      const res = await collectFlutterwavePayment({
+        amount: Number(order.totalAmount),
+        txRef: init.reference,
+        email: user?.email ?? "",
+        name: user?.fullName,
+        phone: user?.phone,
+        orderNumber: order.orderNumber,
       });
-      popup.openIframe();
+      if (res?.status === "successful") {
+        try {
+          await api.post("/payments/verify", { reference: init.reference });
+        } catch {
+          // Webhook settles it server-side; refresh shows the truth.
+        }
+        fetchOrder();
+        setJustPaid({ reference: init.reference });
+      } else if (res?.status) {
+        setError("Payment was not completed — you can try again below.");
+      }
     } catch (err) {
       setError(err instanceof Error ? err.message : "Could not start the payment.");
     } finally {
       setPaying(false);
     }
   }
+
+  function paidFollowupUrl(reference: string) {
+    if (!order) return "";
+    return orderFollowupWhatsAppUrl({
+      orderNumber: order.orderNumber,
+      reference,
+      items: order.items.map((i) => ({
+        name: i.product?.name ?? "Item",
+        sizeKg: i.sizeKg,
+        quantity: i.quantity,
+        lineTotal: i.totalPrice,
+      })),
+      subtotal: order.subtotal,
+      deliveryFee: order.deliveryFee,
+      total: order.totalAmount,
+      customer: {
+        name: user?.fullName,
+        phone: user?.phone,
+        email: user?.email,
+      },
+      deliveryAddress: order.delivery?.deliveryAddress ?? null,
+      branchName: order.branch?.name ?? null,
+    });
+  }
+
+  // Confirmation stays on screen for a beat, then the client is routed to the
+  // company WhatsApp with the order + full details for instant follow-up.
+  useEffect(() => {
+    if (!justPaid || !order || waRedirectedRef.current) return;
+    const url = paidFollowupUrl(justPaid.reference);
+    const t = setTimeout(() => {
+      waRedirectedRef.current = true;
+      window.location.href = url;
+    }, 1000);
+    return () => clearTimeout(t);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [justPaid, order]);
 
   if (loading) {
     return (
@@ -225,8 +246,20 @@ export default function OrderDetailPage() {
       <div className="max-w-4xl mx-auto px-4 py-8 space-y-6">
         {searchParams.get("verify") === "1" && (
           <div className="p-4 rounded-xl border border-blue-200 bg-blue-50 text-sm text-blue-800 max-w-2xl">
-            Payment received — we&apos;re confirming it with Paystack now. This page
-            updates automatically.
+            Payment received — we&apos;re confirming it with Flutterwave now. This
+            page updates automatically.
+          </div>
+        )}
+        {justPaid && (
+          <div className="p-4 rounded-xl border border-green-200 bg-green-50 text-sm text-green-800 max-w-2xl">
+            Payment confirmed — opening WhatsApp so our team can follow up on
+            your order right away.{" "}
+            <a
+              href={paidFollowupUrl(justPaid.reference)}
+              className="font-semibold underline"
+            >
+              Open WhatsApp now
+            </a>
           </div>
         )}
         {error && (
@@ -351,7 +384,7 @@ export default function OrderDetailPage() {
                 <span className="text-slate-500">Method</span>
                 <span className="font-medium text-navy-900">
                   {order.paymentMethod === "online"
-                    ? "Paystack Online"
+                    ? "Flutterwave Online"
                     : order.paymentMethod === "transfer"
                     ? "Bank Transfer"
                     : order.paymentMethod === "pos"
@@ -382,7 +415,7 @@ export default function OrderDetailPage() {
                 </div>
               )}
             </div>
-            {needsPayment && PAYSTACK_PUBLIC_KEY && (
+            {needsPayment && FLW_PUBLIC_KEY && (
               <button
                 onClick={completePayment}
                 disabled={paying}
@@ -398,7 +431,7 @@ export default function OrderDetailPage() {
                 )}
               </button>
             )}
-            {needsPayment && !PAYSTACK_PUBLIC_KEY && (
+            {needsPayment && !FLW_PUBLIC_KEY && (
               <p className="mt-3 text-xs text-slate-400">
                 Online checkout is being configured — your order is still active.
               </p>
