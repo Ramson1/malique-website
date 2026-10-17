@@ -1,14 +1,5 @@
 import { Flame } from "lucide-react";
-
-const divisions = [
-  "Oil & Gas Operations",
-  "LPG Sales & Plant Services",
-  "Property Development",
-  "Engineering & Construction",
-  "Transportation & Haulage",
-  "Procurement & General Contracts",
-  "Workforce Development",
-];
+import { DIVISION_NAMES as divisions } from "@/lib/divisions";
 
 /** Infinite marquee of everything Malique does — pauses on hover. */
 export function Ticker() {

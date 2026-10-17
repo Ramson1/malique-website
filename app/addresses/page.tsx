@@ -13,6 +13,7 @@ import {
 } from "lucide-react";
 import { useAuth } from "@/lib/auth-context";
 import { api } from "@/lib/api/client";
+import { Skeleton, SkeletonList } from "@/components/skeleton";
 
 interface Address {
   id: string;
@@ -161,8 +162,9 @@ export default function AddressesPage() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-slate-50 flex items-center justify-center">
-        <div className="w-8 h-8 border-2 border-amber-600 border-t-transparent rounded-full animate-spin" />
+      <div className="max-w-4xl mx-auto px-4 py-8">
+        <Skeleton className="mb-8 h-8 w-48" />
+        <SkeletonList rows={3} />
       </div>
     );
   }

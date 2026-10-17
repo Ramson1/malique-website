@@ -16,6 +16,7 @@ import {
 } from "lucide-react";
 import { useAuth } from "@/lib/auth-context";
 import { api } from "@/lib/api/client";
+import { Skeleton, SkeletonList } from "@/components/skeleton";
 import {
   formatNaira,
   formatDate,
@@ -160,8 +161,13 @@ export default function OrderDetailPage() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-slate-50 flex items-center justify-center">
-        <div className="w-8 h-8 border-2 border-amber-600 border-t-transparent rounded-full animate-spin" />
+      <div className="min-h-screen bg-slate-50">
+        <div className="mx-auto max-w-3xl px-4 py-8 space-y-4">
+          <Skeleton className="h-7 w-44" />
+          <Skeleton className="mb-4 h-4 w-64" />
+          <SkeletonList rows={1} />
+          <SkeletonList rows={3} />
+        </div>
       </div>
     );
   }

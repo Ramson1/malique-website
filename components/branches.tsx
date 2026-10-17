@@ -1,24 +1,7 @@
 import { MapPin, Phone, Clock, Navigation } from "lucide-react";
+import { BRANCHES, TEL } from "@/lib/company";
 
-const branches = [
-  {
-    name: "Igboh Etche",
-    address:
-      "Plot 3, Okoche New Layout, Edegelem, Igboh Etche, Etche LGA, Rivers State, Nigeria",
-    phones: ["+234 903 162 8721", "+234 915 597 7415"],
-    hours: "Mon–Fri: 8AM–8PM, Sat: 8AM–6PM",
-    lat: 5.4439,
-    lng: 7.2831,
-  },
-  {
-    name: "Elelenwo",
-    address: "Off Odani Road, Elelenwo, Port-Harcourt, Rivers State, Nigeria",
-    phones: ["+234 903 162 8721", "+234 915 597 7415"],
-    hours: "Mon–Fri: 8AM–8PM, Sat: 8AM–6PM",
-    lat: 4.7135,
-    lng: 7.0765,
-  },
-];
+const branches = BRANCHES;
 
 export function Branches() {
   return (
@@ -65,7 +48,7 @@ export function Branches() {
                   <div key={phone} className="flex items-center gap-2">
                     <Phone className="w-4 h-4 text-slate-400 shrink-0" />
                     <a
-                      href={`tel:${phone.replace(/\s/g, "")}`}
+                      href={TEL(phone)}
                       className="text-sm text-slate-600 hover:text-amber-600 transition-colors"
                     >
                       {phone}
@@ -90,7 +73,7 @@ export function Branches() {
                   Directions
                 </a>
                 <a
-                  href={`tel:${branch.phones[0].replace(/\s/g, "")}`}
+                  href={TEL(branch.phones[0])}
                   className="flex-1 inline-flex items-center justify-center gap-1.5 h-9 rounded-lg bg-navy-900 text-xs font-medium text-white hover:bg-navy-800 transition-colors"
                 >
                   <Phone className="w-3.5 h-3.5" />

@@ -49,13 +49,19 @@ export default function ContactPage() {
                   href="tel:+2349031628721"
                   className="block text-sm text-slate-600 hover:text-amber-600 transition-colors"
                 >
-                  +234 903 162 8721
+                  Igboh Etche · +234 903 162 8721
                 </a>
                 <a
                   href="tel:+2349155977415"
                   className="block text-sm text-slate-600 hover:text-amber-600 transition-colors"
                 >
-                  +234 915 597 7415
+                  Igboh Etche · +234 915 597 7415
+                </a>
+                <a
+                  href="tel:+2349030568003"
+                  className="block text-sm text-slate-600 hover:text-amber-600 transition-colors"
+                >
+                  Elelenwo · +234 903 056 8003
                 </a>
               </div>
 
@@ -83,10 +89,10 @@ export default function ContactPage() {
                 </div>
                 <h3 className="font-bold text-navy-900 mb-1">Email</h3>
                 <a
-                  href="mailto:info@maliqueoilgas.com"
+                  href="mailto:maliqueoilandgasltd@gmail.com"
                   className="text-sm text-slate-600 hover:text-amber-600 transition-colors break-all"
                 >
-                  info@maliqueoilgas.com
+                  maliqueoilandgasltd@gmail.com
                 </a>
               </div>
 
@@ -96,11 +102,11 @@ export default function ContactPage() {
                 </div>
                 <h3 className="font-bold text-navy-900 mb-1">Opening Hours</h3>
                 <p className="text-sm text-slate-600 leading-relaxed">
-                  Mon–Fri: 8AM–8PM
+                  Mon–Sat: 7AM–7PM
                   <br />
-                  Sat: 8AM–6PM
+                  Sun: 10AM–7PM
                   <br />
-                  Sun: Closed
+                  Elelenwo Sun: 12PM–7PM
                 </p>
               </div>
             </div>

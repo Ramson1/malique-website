@@ -13,7 +13,7 @@ export const metadata: Metadata = {
 };
 
 const stats = [
-  { value: "7", label: "Service Divisions" },
+  { value: "12", label: "Service Divisions" },
   { value: "2", label: "Operational Branches" },
   { value: "24/7", label: "Dispatch & Support" },
   { value: "100%", label: "Safety-Focused Delivery" },

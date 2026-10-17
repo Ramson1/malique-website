@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { Phone, Mail, MapPin, Clock, MessageCircle, Users, Facebook, Instagram, Linkedin } from "lucide-react";
 import { WHATSAPP_GROUP_URL } from "@/lib/whatsapp";
+import { COMPANY_EMAIL } from "@/lib/company";
 
 export function Footer() {
   return (
@@ -20,8 +21,10 @@ export function Footer() {
             </Link>
             <p className="text-sm text-slate-400 leading-relaxed">
               A Nigerian company delivering integrated energy, infrastructure
-              and business solutions — oil &amp; gas, LPG, construction, real
-              estate, transportation, procurement and workforce development.
+              and commercial solutions — LPG and gas, oil &amp; gas operations,
+              filling stations and gas plants, engineering, construction, real
+              estate, water works, dredging, transportation, procurement,
+              import/export and training.
             </p>
           </div>
 
@@ -60,16 +63,20 @@ export function Footer() {
             <ul className="space-y-3">
               <li className="flex items-start gap-2">
                 <Phone className="w-4 h-4 text-amber-500 mt-0.5 shrink-0" />
-                <span className="text-sm text-slate-400">+234 903 162 8721</span>
+                <span className="text-sm text-slate-400">Igboh Etche · +234 903 162 8721</span>
               </li>
               <li className="flex items-start gap-2">
                 <Phone className="w-4 h-4 text-amber-500 mt-0.5 shrink-0" />
-                <span className="text-sm text-slate-400">+234 915 597 7415</span>
+                <span className="text-sm text-slate-400">Igboh Etche · +234 915 597 7415</span>
+              </li>
+              <li className="flex items-start gap-2">
+                <Phone className="w-4 h-4 text-amber-500 mt-0.5 shrink-0" />
+                <span className="text-sm text-slate-400">Elelenwo (Off Odani Rd) · +234 903 056 8003</span>
               </li>
               <li className="flex items-start gap-2">
                 <Mail className="w-4 h-4 text-amber-500 mt-0.5 shrink-0" />
                 <span className="text-sm text-slate-400">
-                  info@maliqueoilgas.com
+                  {COMPANY_EMAIL}
                 </span>
               </li>
               <li className="flex items-start gap-2">
@@ -143,9 +150,9 @@ export function Footer() {
               <li className="flex items-start gap-2">
                 <Clock className="w-4 h-4 text-amber-500 mt-0.5 shrink-0" />
                 <div className="text-sm text-slate-400">
-                  <div>Mon – Fri: 8:00 AM – 8:00 PM</div>
-                  <div>Saturday: 8:00 AM – 6:00 PM</div>
-                  <div>Sunday: Closed</div>
+                  <div>Mon – Sat: 7:00 AM – 7:00 PM</div>
+                  <div>Sunday: 10:00 AM – 7:00 PM</div>
+                  <div>Elelenwo Sunday: 12:00 PM – 7:00 PM</div>
                 </div>
               </li>
             </ul>

@@ -2,111 +2,22 @@ import type { Metadata } from "next";
 import { Header } from "@/components/header";
 import { Footer } from "@/components/footer";
 import { PageHero } from "@/components/page-hero";
-import {
-  Flame,
-  Factory,
-  Building2,
-  HardHat,
-  Truck,
-  Package,
-  GraduationCap,
-  CheckCircle2,
-} from "lucide-react";
+import { CheckCircle2 } from "lucide-react";
 import Link from "next/link";
+import { DIVISIONS } from "@/lib/divisions";
 
 export const metadata: Metadata = {
   title: "Services — Malique Oil and Gas Ltd",
   description:
-    "Oil and gas operations, LPG sales and plant services, property development, engineering and construction, transportation and haulage, procurement, general contracts and workforce development.",
+    "Malique Oil and Gas Ltd delivers LPG and cooking gas, oil and gas operations, filling stations and gas plants, engineering and construction, real estate, borehole and water works, marine and dredging, transportation and haulage, procurement, import/export and training.",
 };
 
-const services = [
-  {
-    icon: Flame,
-    name: "Oil & Gas Operations",
-    summary:
-      "Professional support services for upstream and midstream operations, delivered with certified safety standards.",
-    capabilities: [
-      "Operational support and supervision",
-      "Equipment supply and installation",
-      "Site logistics and mobilisation",
-      "Maintenance and turnaround support",
-    ],
-  },
-  {
-    icon: Factory,
-    name: "LPG Sales & Plant Services",
-    summary:
-      "Cooking gas refills, cylinder sales and gas plant services for households, businesses and bulk buyers.",
-    capabilities: [
-      "3kg – 50kg cylinder refills",
-      "New cylinder sales and exchange",
-      "Commercial and industrial bulk supply",
-      "Plant filling and cylinder testing services",
-      "Fast doorstep delivery in Rivers State",
-    ],
-  },
-  {
-    icon: Building2,
-    name: "Property Development & Real Estate",
-    summary:
-      "Residential and commercial property development, management and strategic land investment.",
-    capabilities: [
-      "Estate and housing development",
-      "Property management and leasing",
-      "Land acquisition and title verification",
-      "Facility maintenance services",
-    ],
-  },
-  {
-    icon: HardHat,
-    name: "Engineering & Construction",
-    summary:
-      "Civil, mechanical and industrial engineering construction for energy and commercial clients.",
-    capabilities: [
-      "Building and civil works",
-      "Mechanical pipeline fabrication and installation",
-      "Industrial plant construction and repairs",
-      "Project supervision and management",
-    ],
-  },
-  {
-    icon: Truck,
-    name: "Transportation & Haulage",
-    summary:
-      "Dependable movement of energy products, equipment and commercial cargo across Nigeria.",
-    capabilities: [
-      "LPG and petroleum product distribution",
-      "Heavy equipment haulage",
-      "Bulk and inter-state freight",
-      "Dedicated fleet contract hire",
-    ],
-  },
-  {
-    icon: Package,
-    name: "Procurement & General Contracts",
-    summary:
-      "End-to-end sourcing, supply and contract delivery for corporate, industrial and government clients.",
-    capabilities: [
-      "Commodity and equipment procurement",
-      "Vendor management and tendering support",
-      "Supply contracts and framework agreements",
-      "General enterprise and maintenance contracts",
-    ],
-  },
-  {
-    icon: GraduationCap,
-    name: "Workforce Development",
-    summary:
-      "Training, placement and capacity building for the energy and industrial workforce of tomorrow.",
-    capabilities: [
-      "Safety and technical training programmes",
-      "Skilled labour placement",
-      "Corporate capacity building",
-      "Internship and mentorship schemes",
-    ],
-  },
-];
+const services = DIVISIONS.map((d) => ({
+  icon: d.icon,
+  name: d.name,
+  summary: d.description,
+  capabilities: d.capabilities,
+}));
 
 export default function ServicesPage() {
   return (

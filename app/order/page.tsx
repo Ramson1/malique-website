@@ -17,6 +17,7 @@ import {
 } from "lucide-react";
 import { useAuth } from "@/lib/auth-context";
 import { api } from "@/lib/api/client";
+import { Skeleton, SkeletonProductGrid } from "@/components/skeleton";
 
 interface Branch {
   id: string;
@@ -528,9 +529,16 @@ function OrderWizard() {
               Choose the branch closest to your delivery address.
             </p>
             {branches.length === 0 ? (
-              <div className="flex items-center gap-2 text-sm text-slate-500">
-                <Loader2 className="w-4 h-4 animate-spin" />
-                Loading branches...
+              <div aria-hidden className="space-y-3">
+                {Array.from({ length: 3 }).map((_, i) => (
+                  <div key={i} className="flex items-center gap-4 rounded-xl border border-slate-200 bg-white p-4">
+                    <Skeleton className="h-10 w-10 rounded-lg" />
+                    <div className="flex-1 space-y-2">
+                      <Skeleton className="h-4 w-1/3" />
+                      <Skeleton className="h-3 w-2/3" />
+                    </div>
+                  </div>
+                ))}
               </div>
             ) : (
               <div className="grid gap-3">
@@ -568,10 +576,7 @@ function OrderWizard() {
             </p>
 
             {catalogLoading ? (
-              <div className="flex items-center gap-2 text-sm text-slate-500">
-                <Loader2 className="w-4 h-4 animate-spin" />
-                Loading catalog...
-              </div>
+              <SkeletonProductGrid count={6} />
             ) : (
               grouped.map((group) => (
                 <div key={group.category} className="mb-8">
@@ -993,8 +998,12 @@ export default function OrderPage() {
   return (
     <Suspense
       fallback={
-        <div className="min-h-screen bg-slate-50 flex items-center justify-center">
-          <Loader2 className="w-6 h-6 animate-spin text-amber-600" />
+        <div className="min-h-screen bg-slate-50">
+          <div className="mx-auto max-w-3xl px-4 py-12">
+            <Skeleton className="mb-2 h-8 w-56" />
+            <Skeleton className="mb-8 h-4 w-72" />
+            <SkeletonProductGrid count={6} />
+          </div>
         </div>
       }
     >

@@ -2,17 +2,7 @@
 
 import { useState } from "react";
 import { Send, MessageCircle, Mail, CheckCircle2 } from "lucide-react";
-
-const divisions = [
-  "LPG Sales & Plant Services",
-  "Oil & Gas Operations",
-  "Property Development & Real Estate",
-  "Engineering & Construction",
-  "Transportation & Haulage",
-  "Procurement & General Contracts",
-  "Workforce Development",
-  "Other",
-];
+import { DIVISION_OPTIONS as divisions } from "@/lib/divisions";
 
 export function QuoteForm() {
   const [submitted, setSubmitted] = useState(false);
@@ -49,7 +39,7 @@ export function QuoteForm() {
     .join("\n");
 
   const whatsappUrl = `https://wa.me/2349031628721?text=${encodeURIComponent(message)}`;
-  const mailtoUrl = `mailto:info@maliqueoilgas.com?subject=${encodeURIComponent(
+  const mailtoUrl = `mailto:maliqueoilandgasltd@gmail.com?subject=${encodeURIComponent(
     "Quote Request: " + form.division
   )}&body=${encodeURIComponent(message)}`;
 

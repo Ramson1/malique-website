@@ -8,7 +8,7 @@ import Link from "next/link";
 export const metadata: Metadata = {
   title: "About Us — Malique Oil and Gas Ltd",
   description:
-    "Malique Oil and Gas Ltd is a Nigerian company delivering integrated energy, infrastructure and business solutions across oil and gas, LPG, construction, real estate, transportation, procurement and workforce development.",
+    "Malique Oil and Gas Ltd is a Nigerian company delivering integrated energy, infrastructure and commercial solutions across LPG and gas services, oil and gas operations, filling stations and gas plants, engineering and construction, real estate, borehole and water works, marine and dredging, transportation, procurement, import/export and training.",
 };
 
 const values = [
@@ -63,10 +63,16 @@ export default function AboutPage() {
                 <div className="space-y-4 text-slate-600 leading-relaxed">
                   <p>
                     Malique Oil and Gas Ltd is a Nigerian company delivering
-                    professional services across oil and gas operations, LPG
-                    sales and plant services, property development,
-                    engineering, construction, transportation, haulage,
-                    procurement, general contracts and workforce development.
+                    integrated energy, infrastructure and commercial solutions.
+                    Our objects span LPG, acetylene and methane gas sales and
+                    plant services; oil and gas operations, petroleum product
+                    supply and import/export; filling stations and gas plants;
+                    engineering and construction; real estate and property
+                    development; borehole drilling and water works; marine and
+                    dredging services; transportation, haulage and fleet
+                    operations; procurement, general contracts and general
+                    trade; and training, human-resource and business support
+                    services.
                   </p>
                   <p>
                     Headquartered in Rivers State with operational branches in

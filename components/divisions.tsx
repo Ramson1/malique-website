@@ -1,59 +1,6 @@
 import Link from "next/link";
-import {
-  Flame,
-  Factory,
-  Building2,
-  HardHat,
-  Truck,
-  Package,
-  GraduationCap,
-  ArrowRight,
-} from "lucide-react";
-
-const divisions = [
-  {
-    icon: Flame,
-    name: "Oil & Gas Operations",
-    description:
-      "Professional services and support operations across upstream and midstream oil and gas projects.",
-  },
-  {
-    icon: Factory,
-    name: "LPG Sales & Plant Services",
-    description:
-      "Cooking gas refills, cylinder sales, gas plant operations and doorstep delivery across Rivers State.",
-  },
-  {
-    icon: Building2,
-    name: "Property Development",
-    description:
-      "Real estate development, property management and strategic land investment opportunities.",
-  },
-  {
-    icon: HardHat,
-    name: "Engineering & Construction",
-    description:
-      "Civil, mechanical and industrial engineering projects delivered to professional standards.",
-  },
-  {
-    icon: Truck,
-    name: "Transportation & Haulage",
-    description:
-      "Reliable logistics, haulage and distribution services for energy and commercial cargo.",
-  },
-  {
-    icon: Package,
-    name: "Procurement & General Contracts",
-    description:
-      "Sourcing, supply and contract management for corporate, industrial and government clients.",
-  },
-  {
-    icon: GraduationCap,
-    name: "Workforce Development",
-    description:
-      "Training, placement and capacity building for skilled energy and industrial professionals.",
-  },
-];
+import { ArrowRight } from "lucide-react";
+import { DIVISIONS as divisions } from "@/lib/divisions";
 
 export function Divisions() {
   return (

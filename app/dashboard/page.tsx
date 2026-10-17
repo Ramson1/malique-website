@@ -14,6 +14,7 @@ import {
 } from "lucide-react";
 import { useAuth } from "@/lib/auth-context";
 import { api } from "@/lib/api/client";
+import { SkeletonText, SkeletonStatGrid, SkeletonList } from "@/components/skeleton";
 import {
   formatNaira,
   formatDate,
@@ -86,8 +87,12 @@ export default function DashboardPage() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-slate-50 flex items-center justify-center">
-        <div className="w-8 h-8 border-2 border-amber-600 border-t-transparent rounded-full animate-spin" />
+      <div className="min-h-screen bg-slate-50">
+        <div className="mx-auto max-w-5xl px-4 py-8 space-y-6">
+          <SkeletonText lines={2} className="w-56" />
+          <SkeletonStatGrid count={3} />
+          <SkeletonList rows={3} />
+        </div>
       </div>
     );
   }
